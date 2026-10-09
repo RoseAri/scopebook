@@ -78,7 +78,7 @@ export function ResultScreen({ designerProject, invite, session, update, inputs,
   };
 
   const submit = () => update((s) => S.submit(s));
-  const designerName = invite.designer?.name || invite.designer?.studio || t('client.result.theDesigner');
+  const designerName = t('client.result.theDesigner');
 
   return (
     <div>
@@ -87,7 +87,7 @@ export function ResultScreen({ designerProject, invite, session, update, inputs,
         <p className="eyebrow">{invite.projectName}</p>
         <h1 className="page-title" style={{ marginTop: 6 }}>{t('client.result.title')}</h1>
         <Figures effort={result.effort} price={result.price.total} confidence={result.confidence.level} />
-        <p className="small muted" style={{ marginTop: 18, maxWidth: '68ch' }}>{t('client.result.disclaimer')}</p>
+        <p className="small muted" style={{ marginTop: 18 }}>{t('client.result.disclaimer')}</p>
       </div>
 
       <div className="grid-2" style={{ marginTop: 32, gap: 40 }}>

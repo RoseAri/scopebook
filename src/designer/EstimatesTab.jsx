@@ -18,6 +18,7 @@ import { downloadPdf } from '../documents/export.js';
 import { usePdfPreview } from '../components/PdfPreview.jsx';
 import { uid } from '../lib/util.js';
 import { navigate } from '../lib/router.jsx';
+import { arrayMove, useDragSort } from '../components/dragSort.js';
 
 const T = (zh, en) => ({ zh, en });
 
@@ -426,10 +427,22 @@ function FlowsEditor({ v, upd }) {
                 />
               </div>
             </div>
-            {f.mode === 'custom' && (
-              <div className="stack" style={{ marginTop: 10, '--gap': '6px' }}>
-                {f.steps.map((st, i) => (
-                  <div key={st.id} className="row" style={{ '--gap': '6px', flexWrap: 'nowrap' }}>
+            {f.mode === 'custom' && <FlowStepsEditor steps={f.steps} setFlow={setFlow} />}
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
+function FlowStepsEditor({ steps, setFlow }) {
+  const { t, tl } = useI18n();
+  const drag = useDragSort((from, to) => setFlow((cur) => { cur.steps = arrayMove(cur.steps, from, to); return cur; }));
+  return (
+              <div className="stack" style={{ marginTop: 10, '--gap': '6px' }} ref={drag.listRef}>
+                {steps.map((st, i) => (
+                  <div key={st.id} className={`row sort-row${drag.index === i ? ' dragging' : ''}`} style={{ '--gap': '6px', flexWrap: 'nowrap' }} data-sort-item>
+                    <button {...drag.handleProps(i, t('common.dragToReorder'))} />
                     <span className="xs muted" style={{ width: 18 }}>{i + 1}</span>
                     <input className="input tight grow" value={st.text} placeholder={st.preset ? tl(st.preset) : ''} onChange={(e) => setFlow((cur) => { cur.steps[i].text = e.target.value; return cur; })} aria-label={t('client.flows.stepLabel', { n: i + 1 })} />
                     <select className="select input tight" style={{ width: 140, flex: 'none' }} value={st.type} onChange={(e) => setFlow((cur) => { cur.steps[i].type = e.target.value; return cur; })}>
@@ -444,11 +457,6 @@ function FlowsEditor({ v, upd }) {
                 ))}
                 <div><button className="btn small" onClick={() => setFlow((cur) => { cur.steps.push({ id: uid('st'), type: 'other', preset: null, text: '', branches: [], unsure: false }); return cur; })}>{t('client.flows.addStep')}</button></div>
               </div>
-            )}
-          </div>
-        );
-      })}
-    </section>
   );
 }
 

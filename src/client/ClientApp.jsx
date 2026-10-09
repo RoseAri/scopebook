@@ -137,7 +137,7 @@ function ClientFlow({ invite, session, update, preview }) {
   };
 
   const sectionIndex = screenDef ? SECTIONS.findIndex((x) => x.id === screenDef.section) : current === 'result' ? SECTIONS.length : -1;
-  const studio = invite.designer?.studio || invite.designer?.name;
+  const studio = invite.designer?.studio;
 
   return (
     <div className="client-page">

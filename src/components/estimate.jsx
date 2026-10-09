@@ -109,7 +109,7 @@ export function Figures({ effort, price, confidence, fixedPrice, compact }) {
       </div>
       <div>
         <div className="figure-label">{fixedPrice != null ? t('est.finalPrice') : t('est.priceRange')}</div>
-        <div className={`figure ${compact ? 'md' : 'lg'} num`}>{fixedPrice != null ? money(fixedPrice) : moneyRange(price, true)}</div>
+        <div className={`figure ${compact ? 'md' : 'lg'} num`}>{fixedPrice != null ? money(fixedPrice) : price.min === price.max ? money(price.min) : (<><span className="nowrap">{money(price.min)}</span> <span className="nowrap">– {Math.round(price.max).toLocaleString('en-US')}</span></>)}</div>
       </div>
       <div>
         <div className="figure-label">{t('est.confidence')}</div>

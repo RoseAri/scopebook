@@ -15,9 +15,9 @@ export function moneyShort(n, symbol = 'NT$') {
 
 export function moneyRange(r, symbol = 'NT$', short = false) {
   if (!r) return '—';
-  const f = short ? moneyShort : money;
-  if (r.min === r.max) return f(r.min, symbol);
-  return `${f(r.min, symbol)} – ${short ? f(r.max, symbol) : Math.round(r.max).toLocaleString('en-US')}`;
+  // Prices are always written out in full (no "K"), e.g. NT$308,000 – 384,000.
+  if (r.min === r.max) return money(r.min, symbol);
+  return `${money(r.min, symbol)} – ${Math.round(r.max).toLocaleString('en-US')}`;
 }
 
 export function hoursRange(r) {

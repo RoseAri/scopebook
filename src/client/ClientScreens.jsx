@@ -4,26 +4,63 @@ import { QUESTIONS, REFERENCE_LIKES, REFERENCE_TYPES, FLOW_STEP_TYPES, isVisible
 import { FLOW_GOALS, GOALS } from '../data/baseline.js';
 import { isEstimateStable, validationSuggestion } from '../engine/estimate.js';
 import { moveItem, uid } from '../lib/util.js';
+import { arrayMove, useDragSort } from '../components/dragSort.js';
 import * as S from './session.js';
 
 const T = (zh, en) => ({ zh, en });
 
 // ---------------------------------------------------------------------------
 
-export function IntroScreen({ invite, session, onStart }) {
+const INTRO_ICONS = {
+  goal: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1" />
+    </svg>
+  ),
+  adjust: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    </svg>
+  ),
+  send: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20.5 3.5 10 14" />
+      <path d="M20.5 3.5 14 20.5l-4-6.5-6.5-4z" />
+    </svg>
+  ),
+};
+
+export function IntroScreen({ session, onStart }) {
   const { t } = useI18n();
   const resumed = Object.keys(session.responses).length > 0;
+  const steps = [
+    ['goal', 'client.intro.step1Title', 'client.intro.step1'],
+    ['adjust', 'client.intro.step2Title', 'client.intro.step2'],
+    ['send', 'client.intro.step3Title', 'client.intro.step3'],
+  ];
   return (
     <div className="stack" style={{ '--gap': '22px' }}>
-      <p className="eyebrow">{invite.projectName}</p>
       <h1 className="q-title" style={{ fontSize: 'var(--fs-3xl)' }}>
         {t('client.intro.hello')}
       </h1>
-      <p style={{ fontSize: 'var(--fs-lg)', color: 'var(--ink-2)', maxWidth: '54ch' }}>{t('client.intro.body')}</p>
-      <ol className="stack" style={{ '--gap': '10px', paddingLeft: 20, color: 'var(--ink-2)' }}>
-        <li>{t('client.intro.step1')}</li>
-        <li>{t('client.intro.step2')}</li>
-        <li>{t('client.intro.step3')}</li>
+      <p style={{ fontSize: 'var(--fs-lg)', color: 'var(--ink-2)' }}>{t('client.intro.body')}</p>
+      <ol className="intro-steps">
+        {steps.map(([icon, title, body], i) => (
+          <li key={icon}>
+            <div className="intro-step-top">
+              <span className="intro-step-icon">{INTRO_ICONS[icon]}</span>
+              <span className="intro-step-num">{String(i + 1).padStart(2, '0')}</span>
+            </div>
+            <div>
+              <h2 className="intro-step-title">{t(title)}</h2>
+              <p>{t(body)}</p>
+            </div>
+          </li>
+        ))}
       </ol>
       <p className="small muted">{t('client.intro.privacy')}</p>
       <div>
@@ -194,7 +231,7 @@ export function ScopeScreen({ session, update, snapshot, fnDefs }) {
         )}
       </div>
 
-      <section className="q-block">
+      <section className="q-block sep">
         <h2 className="q-title follow">{t('client.scope.customTitle')}</h2>
         <p className="q-hint">{t('client.scope.customHint')}</p>
         {session.scope.custom.map((c) => (
@@ -358,12 +395,14 @@ function FlowBuilder({ goal, steps, update }) {
   const set = (next, note) => update((s) => S.updateFlowSteps(s, goal, next, note));
   const name = FLOW_GOALS[goal].name;
   const patch = (i, p) => set(steps.map((st, j) => (j === i ? { ...st, ...p } : st)));
+  const drag = useDragSort((from, to) => update((s) => S.updateFlowSteps(s, goal, arrayMove(s.flows[goal]?.steps || [], from, to))));
   return (
     <div style={{ marginTop: 18 }}>
       <p className="small muted">{t('client.flows.builderHint')}</p>
-      <ol className="flow-steps">
+      <ol className="flow-steps" ref={drag.listRef}>
         {steps.map((st, i) => (
-          <li key={st.id} className="flow-step">
+          <li key={st.id} className={`flow-step${drag.index === i ? ' dragging' : ''}`} data-sort-item>
+            <button {...drag.handleProps(i, t('common.dragToReorder'))} />
             <div className="stack" style={{ '--gap': '8px' }}>
               <div className="row" style={{ '--gap': '8px', flexWrap: 'nowrap' }}>
                 <input
